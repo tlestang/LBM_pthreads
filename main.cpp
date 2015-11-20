@@ -25,7 +25,7 @@ using namespace std;
 int main()
 {
   /*Parameters for LB simulation*/
-  int nbOfChunks, nbOfTimeSteps, numberOfTransientSteps, Lx, Ly;
+  int nbOfTimeSteps, Lx, Ly;
   int facquVtk, facquRe, facquForce;
   double tau, beta;
   double *fin, *fout, *temp, *rho, *ux, *uy;
@@ -35,7 +35,6 @@ int main()
   
   /*Reads input file*/
       ifstream input_file("input.datin");
-      input_file >> nbOfChunks;
       input_file >> nbOfTimeSteps;
       input_file >> Lx; Ly = Lx;
       input_file >> tau;
