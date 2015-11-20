@@ -90,10 +90,6 @@ int main()
    
   /* --- START LBM ---*/
 
-      
-      for(int chunkID=0;chunkID<nbOfChunks;chunkID++)
-	{
-
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
 	      streamingAndCollision_POSIX(fout, fin, rho, ux, uy, beta, tau, Dx, Dy);
@@ -116,5 +112,7 @@ int main()
 	      fout = temp;
 
 	    }
-	}
 }
+
+
+
