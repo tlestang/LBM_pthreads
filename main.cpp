@@ -91,11 +91,9 @@ int main()
 
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
-	      cout << "Streaming and collison" <<endl;
+	      cout << lbTimeStepCount << endl;
 	      streamingAndCollision_POSIX(fout, fin, rho, ux, uy, beta, tau, Dx, Dy);
-	      cout << "walls" << endl;
 	      computeDomainNoSlipWalls_BB(fout, fin, Dx, Dy);
-	      cout << "square" << endl;
 	      computeSquareBounceBack_TEST(fout, fin, xmin, xmax, ymin, ymax, Dx, Dy);
 	      /*Reset square nodes to equilibrium*/
 	      for(int x=xmin+1;x<xmax;x++)

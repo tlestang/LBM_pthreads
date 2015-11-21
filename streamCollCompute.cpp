@@ -13,7 +13,7 @@
 
 using namespace std;
 
-#define NUM_THREADS 1 // according to the number of processor cores
+#define NUM_THREADS 2 // according to the number of processor cores
 
 void *do_it(void *);
 
@@ -32,7 +32,6 @@ void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double 
   int threadIdx = 0;
   int rc;
   void *status;
-  cout << yblcksize << endl;
   pthread_t thread[NUM_THREADS];
   shared data[NUM_THREADS];
   /*Set thread joinable attribute.*/
@@ -46,7 +45,6 @@ void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double 
       threadIdx = 0;
       for(int yy=0;yy<Dy;yy+=yblcksize+1)
 	{
-	  cout << "xx = " << xx << " " << "yy = " << yy << endl;
 	  data[threadIdx].xx = xx;
 	  data[threadIdx].yy = yy;
 	  data[threadIdx].xblcksize = xblcksize;
@@ -69,14 +67,11 @@ void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double 
 	    }
 	  threadIdx++;
 	}
-      cout << "Out of loop y " << threadIdx << endl;
       /*Now threadIdx equals the total number of threads*/
       /*Wait for all threads to complete*/
       for(int t=0; t<threadIdx;t++)
 	{
-	  cout << "Boucle sur p_join, t = " << t << endl;
 	  rc = pthread_join(thread[t], &status);
-	  cout << "p_join success" << endl;
 	  if (rc){
 	    std::cout << "ERROR: return code from pthread_join() is" << rc << std::endl;
 	    exit(-1);
@@ -111,11 +106,9 @@ void *do_it(void *arg0)
   Dx = arg->Dx;
   Dy = arg->Dy;
 
-  cout << "Salut, je suis le thread. Je vais boucler de x = " << xStart << "a x = " << xStart+xblcksize-1 << endl;
-  cout << "et de y = "<< yStart << " a y = " << yStart+yblcksize << endl;
-  for(int x=xStart;x<xStart+xblcksize;x++)
+  for(int x=xStart;x<xStart+xblcksize+1;x++)
     {
-      for(int y=yStart;y<yStart+yblcksize;y++)
+      for(int y=yStart;y<yStart+yblcksize+1;y++)
 	{
 	  for(int k=0;k<9;k++)
 	    {
