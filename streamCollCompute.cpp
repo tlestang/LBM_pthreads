@@ -11,8 +11,9 @@
 #include "global.h"
 #endif
 
+using namespace std;
 
-#define NUM_THREADS 2 // according to the number of processor cores
+#define NUM_THREADS 1 // according to the number of processor cores
 
 void *do_it(void *);
 
@@ -30,14 +31,22 @@ void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double 
   int xblcksize=Dx/NUM_THREADS, yblcksize=Dy/NUM_THREADS;
   int threadIdx = 0;
   int rc;
-  void* status;
-
+  void *status;
+  cout << yblcksize << endl;
   pthread_t thread[NUM_THREADS];
   shared data[NUM_THREADS];
-  for(int xx=0;xx<Dx;xx+=xblcksize)
+  /*Set thread joinable attribute.*/
+  /*Not sure it is required*/
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  
+  for(int xx=0;xx<Dx;xx+=xblcksize+1)
     {
-      for(int yy=0;yy<Dy;yy+=yblcksize)
+      threadIdx = 0;
+      for(int yy=0;yy<Dy;yy+=yblcksize+1)
 	{
+	  cout << "xx = " << xx << " " << "yy = " << yy << endl;
 	  data[threadIdx].xx = xx;
 	  data[threadIdx].yy = yy;
 	  data[threadIdx].xblcksize = xblcksize;
@@ -53,18 +62,21 @@ void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double 
 	  data[threadIdx].beta = beta;
 
 	  /*Launches threads*/
-	  rc = pthread_create(&thread[threadIdx], NULL, &do_it, (void *) &data[threadIdx]);
+	  rc = pthread_create(&thread[threadIdx], &attr, &do_it, (void *) &data[threadIdx]);
 	  if(rc)
 	    {
 	      perror("pthread_create"), exit(-1);
 	    }
 	  threadIdx++;
 	}
+      cout << "Out of loop y " << threadIdx << endl;
       /*Now threadIdx equals the total number of threads*/
       /*Wait for all threads to complete*/
       for(int t=0; t<threadIdx;t++)
 	{
+	  cout << "Boucle sur p_join, t = " << t << endl;
 	  rc = pthread_join(thread[t], &status);
+	  cout << "p_join success" << endl;
 	  if (rc){
 	    std::cout << "ERROR: return code from pthread_join() is" << rc << std::endl;
 	    exit(-1);
@@ -99,9 +111,11 @@ void *do_it(void *arg0)
   Dx = arg->Dx;
   Dy = arg->Dy;
 
-  for(int x=xStart;x<x+xblcksize;x++)
+  cout << "Salut, je suis le thread. Je vais boucler de x = " << xStart << "a x = " << xStart+xblcksize-1 << endl;
+  cout << "et de y = "<< yStart << " a y = " << yStart+yblcksize << endl;
+  for(int x=xStart;x<xStart+xblcksize;x++)
     {
-      for(int y=yStart;y<y+yblcksize+1;y++)
+      for(int y=yStart;y<yStart+yblcksize;y++)
 	{
 	  for(int k=0;k<9;k++)
 	    {

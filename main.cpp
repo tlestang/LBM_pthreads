@@ -66,7 +66,7 @@ int main()
       string openParamFile = folderName + "/parameters.datout";
       ofstream param;
       param.open(openParamFile.c_str());
-      param << "Number of timesteps : " << nbOfChunks << "X" << nbOfTimeSteps << endl;
+      param << "Number of timesteps : " << nbOfTimeSteps << endl;
       param << "L : "  << Lx << endl;
       param << "Dx : " << Dx << endl;
       param << "Dy : " << Dy << endl;
@@ -91,8 +91,11 @@ int main()
 
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
+	      cout << "Streaming and collison" <<endl;
 	      streamingAndCollision_POSIX(fout, fin, rho, ux, uy, beta, tau, Dx, Dy);
+	      cout << "walls" << endl;
 	      computeDomainNoSlipWalls_BB(fout, fin, Dx, Dy);
+	      cout << "square" << endl;
 	      computeSquareBounceBack_TEST(fout, fin, xmin, xmax, ymin, ymax, Dx, Dy);
 	      /*Reset square nodes to equilibrium*/
 	      for(int x=xmin+1;x<xmax;x++)
