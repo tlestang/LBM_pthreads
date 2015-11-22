@@ -19,6 +19,7 @@
 #include "initialize_lattice_arrays.h"
 #include "streamCollCompute.h"
 #include "boundaryConditions.h"
+#include "write_vtk.h"
 
 using namespace std;
 
@@ -88,11 +89,18 @@ int main()
       initializeFields(rho, ux, uy, Dx, Dy);
    
   /* --- START LBM ---*/
-
+      int tt=0;
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
-	      //	      cout << "---------------------------------------" << endl;
-	      streamingAndCollision_POSIX(fout, fin, rho, ux, uy, beta, tau, Dx, Dy);
+	      if(lbTimeStepCount%facquVtk==0)
+		{
+		  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
+		  tt++;
+		}
+	      	      cout << "---------------------------------------" << endl;
+	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau, Dx, Dy);
+	      //cout << rho[idx(20,20)] <<endl;
+	      
 	      computeDomainNoSlipWalls_BB(fout, fin, Dx, Dy);
 	      computeSquareBounceBack_TEST(fout, fin, xmin, xmax, ymin, ymax, Dx, Dy);
 	      /*Reset square nodes to equilibrium*/
@@ -112,6 +120,7 @@ int main()
 	      fout = temp;
 
 	    }
+	  
 }
 
 

@@ -102,7 +102,7 @@ void *do_it(void *arg0)
 
   omega = arg->omega;
   omega1 = 1.0-omega; coeff_forcing = 1.0- 0.5*omega;
-
+  beta = arg->beta;
   xblcksize = arg->xblcksize;
   yblcksize = arg->yblcksize;
   Dx = arg->Dx;
@@ -115,12 +115,13 @@ void *do_it(void *arg0)
     {
       for(int y=yStart;y<min(Dy,yStart+yblcksize+1);y++)
 	{
-	  //cout << x << " " << y << endl;
+	  rhoDum = 0.0;
+	  uxDum = 0.0; uyDum = 0.0;
 	  for(int k=0;k<9;k++)
 	    {
 	      ftemp = fin[IDX(x,y,k)];
 	      rhoDum += ftemp;
-	      uyDum += ftemp*c[k][0];
+	      uxDum += ftemp*c[k][0];
 	      uyDum += ftemp*c[k][1];
 	    }
 	  uxDum = uxDum/rhoDum + /*Influence of the force*/0.5*beta/rhoDum; uyDum /= rhoDum;
@@ -132,6 +133,11 @@ void *do_it(void *arg0)
 	      feq = w[k]*rhoDum*(1.0+3.0*eu+eueu+u2);
 	      force_driving = w[k]*coeff_forcing*beta*(3.*(c[k][0]-uxDum)+9.*c[k][0]*eu);
 	      fin[IDX(x,y,k)] = fin[IDX(x,y,k)]*omega1+feq*omega+force_driving;
+	      // if(x==20 && y==20)
+	      // 	{
+	      // 	  //cout << IDX(x,y,k) << " " << fin[IDX(x,y,k)] << endl;
+	      // 	  cout << rhoDum << endl;
+	      // 	}
 	      /*Streaming*/
 	      nx = (x + c[k][0]+Dx)%Dx; ny = (y + c[k][1]+Dy)%Dy;
 	      fout[IDX(nx,ny,k)] = fin[IDX(x,y,k)];
