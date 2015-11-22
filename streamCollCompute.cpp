@@ -18,7 +18,7 @@ using namespace std;
 void *do_it(void *);
 
 typedef struct shared{
-  int xx, yy, kk, xblcksize, yblcksize, Dx, Dy;
+  int xx, yy, kk, xblcksize, yblcksize, Dx, Dy, tid;
   double *in, *out, *rho, *ux, *uy, *uz;
   double omega, beta;
 } shared;
@@ -42,6 +42,7 @@ void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double 
   
   for(int xx=0;xx<Dx;xx+=xblcksize+1)
     {
+
       threadIdx = 0;
       for(int yy=0;yy<Dy;yy+=yblcksize+1)
 	{
@@ -58,6 +59,7 @@ void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double 
 	  data[threadIdx].uy = uy;
 	  data[threadIdx].omega = 1.0/tau;
 	  data[threadIdx].beta = beta;
+	  data[threadIdx].tid = threadIdx;
 
 	  /*Launches threads*/
 	  rc = pthread_create(&thread[threadIdx], &attr, &do_it, (void *) &data[threadIdx]);
@@ -105,11 +107,15 @@ void *do_it(void *arg0)
   yblcksize = arg->yblcksize;
   Dx = arg->Dx;
   Dy = arg->Dy;
+  /*
+  cout << "thread " << arg->tid << " x : " << xStart << "--->" << min(Dx, xStart+xblcksize+1) -1  << endl;
+  cout << "thread " << arg->tid << " y : " << yStart << "--->" << min(Dy, yStart+yblcksize+1) -1 << endl;*/
 
-  for(int x=xStart;x<xStart+xblcksize+1;x++)
+  for(int x=xStart;x<min(Dx, xStart+xblcksize+1);x++)
     {
-      for(int y=yStart;y<yStart+yblcksize+1;y++)
+      for(int y=yStart;y<min(Dy,yStart+yblcksize+1);y++)
 	{
+	  //cout << x << " " << y << endl;
 	  for(int k=0;k<9;k++)
 	    {
 	      ftemp = fin[IDX(x,y,k)];

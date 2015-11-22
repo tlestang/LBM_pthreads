@@ -91,7 +91,7 @@ int main()
 
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
-	      cout << lbTimeStepCount << endl;
+	      //	      cout << "---------------------------------------" << endl;
 	      streamingAndCollision_POSIX(fout, fin, rho, ux, uy, beta, tau, Dx, Dy);
 	      computeDomainNoSlipWalls_BB(fout, fin, Dx, Dy);
 	      computeSquareBounceBack_TEST(fout, fin, xmin, xmax, ymin, ymax, Dx, Dy);
