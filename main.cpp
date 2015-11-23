@@ -90,11 +90,13 @@ int main()
    /* --- Initialize pops to equilibrium value --- */
       initializePopulations(fin, Dx, Dy);
       initializeFields(rho, ux, uy, Dx, Dy);
-   
+      int dummy2 = 0;
   /* --- START LBM ---*/
       int tt=0;
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
+	      if(lbTimeStepCount%(nbOfTimeSteps/100)==0)
+		dummy2++; cout<<dummy2<<"%\r"; fflush(stdout);
 	      if(lbTimeStepCount%facquVtk==0)
 		{
 		  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
