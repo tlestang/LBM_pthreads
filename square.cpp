@@ -45,7 +45,7 @@ void computeSquareBounceBack_TEST(double *fout, double *fin, int xmin, int xmax,
       */
     }
   fout[IDX(xmin,ymin,7)] = fin[IDX(xmin,ymin,5)];
-  fout[IDX(xmin,ymax,6)] = fin[IDX(xmin,ymin,8)];
+  fout[IDX(xmin,ymax,6)] = fin[IDX(xmin,ymax,8)];
   fout[IDX(xmax,ymax,5)] = fin[IDX(xmax,ymax,7)];
   fout[IDX(xmax,ymin,8)] = fin[IDX(xmax,ymin,6)];
   /*

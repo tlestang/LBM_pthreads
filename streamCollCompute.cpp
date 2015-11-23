@@ -107,9 +107,6 @@ void *do_it(void *arg0)
   yblcksize = arg->yblcksize;
   Dx = arg->Dx;
   Dy = arg->Dy;
-  /*
-  cout << "thread " << arg->tid << " x : " << xStart << "--->" << min(Dx, xStart+xblcksize+1) -1  << endl;
-  cout << "thread " << arg->tid << " y : " << yStart << "--->" << min(Dy, yStart+yblcksize+1) -1 << endl;*/
 
   for(int x=xStart;x<min(Dx, xStart+xblcksize+1);x++)
     {
@@ -133,11 +130,6 @@ void *do_it(void *arg0)
 	      feq = w[k]*rhoDum*(1.0+3.0*eu+eueu+u2);
 	      force_driving = w[k]*coeff_forcing*beta*(3.*(c[k][0]-uxDum)+9.*c[k][0]*eu);
 	      fin[IDX(x,y,k)] = fin[IDX(x,y,k)]*omega1+feq*omega+force_driving;
-	      // if(x==20 && y==20)
-	      // 	{
-	      // 	  //cout << IDX(x,y,k) << " " << fin[IDX(x,y,k)] << endl;
-	      // 	  cout << rhoDum << endl;
-	      // 	}
 	      /*Streaming*/
 	      nx = (x + c[k][0]+Dx)%Dx; ny = (y + c[k][1]+Dy)%Dy;
 	      fout[IDX(nx,ny,k)] = fin[IDX(x,y,k)];
