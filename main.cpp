@@ -52,7 +52,7 @@ int main()
       int xmin = (Dx-1)/2; int xmax = xmin + Lx;
       int ymin = (Dy-1)/2 - Ly/2; int ymax = ymin + Ly;
       double cs = 1./sqrt(3); double rho0 = 1.0;
-      double u0 = cs*cs*Ma;
+      double u0 = cs*cs*Ma; double uxSum, uxMean;
       double nu = 1./3.*(tau-0.5);
       double omega = 1.0/tau;
       beta = 8*nu*u0/((Dy-1)/2)/((Dy-1)/2);
@@ -75,6 +75,9 @@ int main()
       param << "beta : " << beta << endl;
       param.close();
 
+      string openReFile = folderName + "/re_t.datout";
+      ofstream ReFile;
+      ReFile.open(openReFile.c_str());
 
   /* ---- | Allocate populations and fields | --- */
 
@@ -97,10 +100,7 @@ int main()
 		  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
 		  tt++;
 		}
-	      	      cout << "---------------------------------------" << endl;
 	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau, Dx, Dy);
-	      //cout << rho[idx(20,20)] <<endl;
-	      
 	      computeDomainNoSlipWalls_BB(fout, fin, Dx, Dy);
 	      computeSquareBounceBack_TEST(fout, fin, xmin, xmax, ymin, ymax, Dx, Dy);
 	      /*Reset square nodes to equilibrium*/
@@ -119,6 +119,17 @@ int main()
 	      fin = fout;
 	      fout = temp;
 
+	      /*Compute Reynolds number*/
+	      if(lbTimeStepCount%facquRe==0)
+		{      
+		  for(int y=0;y<Dy;y++)
+		    {
+		      uxSum += ux[idx(Dx/4, y)];
+		    }
+		  uxMean = uxSum/Dy;
+		  ReFile << lbTimeStepCount << " " << (uxMean*Ly)/nu << endl;
+		  uxSum=0.0; 
+		}
 	    }
 	  
 }

@@ -11,7 +11,7 @@ void computeDomainNoSlipWalls_BB(double *fout, double *fin, int Dx, int Dy)
     {
       /*North boundary*/
       fout[IDX(x,Dy-1,4)] = fin[IDX(x,Dy-1,2)];
-      fout[IDX(x,Dy-1,5)] = fin[IDX(x,Dy-1,6)];
+      fout[IDX(x,Dy-1,8)] = fin[IDX(x,Dy-1,6)];
       fout[IDX(x,Dy-1,7)] = fin[IDX(x,Dy-1,5)];
       /*
       fout[x][Dy-1][4] = fin[x][Dy-1][2];
