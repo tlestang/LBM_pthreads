@@ -1,10 +1,14 @@
 CXXFLAGS=-O3
 LDFLAGS=-lpthread
 
-run: main.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o write_vtk.o
+current: main.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o write_vtk.o
 	g++ -o run main.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o write_vtk.o $(LDFLAGS)
+benchmark: main_benchmark.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o write_vtk.o
+	g++ -o parallel_benchmark main_benchmark.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o write_vtk.o $(LDFLAGS)
 main.o: main.cpp
 	g++ -o main.o -c main.cpp $(CXXFLAGS)
+main_benchmark.o:
+	g++ -o main_benchmark.o -c main_benchmark.cpp $(CXXFLAGS)
 initialize_lattice_arrays.o: initialize_lattice_arrays.cpp
 	g++ -o initialize_lattice_arrays.o -c initialize_lattice_arrays.cpp $(CXXFLAGS)
 streamCollCompute.o: streamCollCompute.cpp
@@ -19,4 +23,5 @@ clean:
 	rm -rf *.o
 mrproper: clean
 	rm -rf run
+	rm -rf benchmark
 
