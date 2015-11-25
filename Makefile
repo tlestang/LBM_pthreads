@@ -1,4 +1,4 @@
-CXXFLAGS=-O3
+CXXFLAGS=-O3 -DFLIPPED
 LDFLAGS=-lpthread
 
 current: main.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o write_vtk.o

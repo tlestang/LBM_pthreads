@@ -28,7 +28,7 @@ const double w[9]={4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36
 
 void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double *ux, double *uy, double beta, double tau, int Dx, int Dy)
 {
-  int xblcksize=Dx/NUM_THREADS, yblcksize=Dy/NUM_THREADS;
+  int xblcksize=Dx /*/NUM_THREADS*/, yblcksize=Dy/NUM_THREADS;
   int threadIdx = 0;
   int rc;
   void *status;
