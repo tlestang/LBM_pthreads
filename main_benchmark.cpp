@@ -92,7 +92,8 @@ int main()
 		
 	    }
 	  gettimeofday(&end,NULL);
-	  cout << (end.tv_sec - start.tv_sec)*1e6 + (end.tv_usec - start.tv_usec) << endl;
+	  double time = (end.tv_sec - start.tv_sec)*1e6 + (end.tv_usec - start.tv_usec);
+	  cout << time/nbOfTimeSteps << endl;
 	  
 }
 
