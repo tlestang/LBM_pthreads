@@ -13,7 +13,7 @@
 
 using namespace std;
 
-#define NUM_THREADS 1  // according to the number of processor cores
+#define NUM_THREADS 4  // according to the number of processor cores
 
 void *do_it(void *);
 

@@ -53,8 +53,8 @@ int main()
       
   /* --- Compute or define other parameters --- */
       Dy = 4*Ly + 1, Dx = 2*(Dy-1) + 1;
-      int xmin = (Dx-1)/2; int xmax = xmin + Lx;
-      int ymin = (Dy-1)/2 - Ly/2; int ymax = ymin + Ly;
+      xmin = (Dx-1)/2; xmax = xmin + Lx;
+      ymin = (Dy-1)/2 - Ly/2; ymax = ymin + Ly;
       double cs = 1./sqrt(3); double rho0 = 1.0;
       double u0 = cs*cs*Ma; double uxSum, uxMean;
       double nu = 1./3.*(tau-0.5);
