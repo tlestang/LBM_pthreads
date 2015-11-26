@@ -13,22 +13,19 @@
 
 using namespace std;
 
-#define NUM_THREADS 2 // according to the number of processor cores
+#define NUM_THREADS 1  // according to the number of processor cores
 
 void *do_it(void *);
 
 typedef struct shared{
-  int xx, yy, kk, xblcksize, yblcksize, Dx, Dy, tid;
+  int xx, yy, kk, xblcksize, yblcksize, tid;
   double *in, *out, *rho, *ux, *uy, *uz;
   double omega, beta;
 } shared;
 
-const int c[9][2] = {{0,0}, {1,0}, {0,1}, {-1,0}, {0,-1}, {1,1}, {-1,1}, {-1,-1}, {1,-1}};
-const double w[9]={4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0};
-
-void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double *ux, double *uy, double beta, double tau, int Dx, int Dy)
+void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double *ux, double *uy, double beta, double tau)//, int Dx, int Dy)
 {
-  int xblcksize=Dx /*/NUM_THREADS*/, yblcksize=Dy/NUM_THREADS;
+  int xblcksize=Dx, yblcksize=Dy/NUM_THREADS;
   int threadIdx = 0;
   int rc;
   void *status;
@@ -50,8 +47,6 @@ void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double 
 	  data[threadIdx].yy = yy;
 	  data[threadIdx].xblcksize = xblcksize;
 	  data[threadIdx].yblcksize = yblcksize;
-	  data[threadIdx].Dx = Dx;
-	  data[threadIdx].Dy = Dy;
 	  data[threadIdx].in = fin;
 	  data[threadIdx].out = fout;
 	  data[threadIdx].rho = rho;
@@ -85,7 +80,7 @@ void streamingAndCollision_POSIX(double *fin, double *fout, double *rho, double 
 void *do_it(void *arg0)
 {
   struct shared *arg = (struct shared *)arg0;
-  int xStart, yStart, nx, ny, xblcksize, yblcksize, Dx, Dy;
+  int xStart, yStart, nx, ny, xblcksize, yblcksize;
   double *fin, *fout, *rho, *ux, *uy;
   double beta, omega;
   double ftemp, feq, rhoDum, uxDum, uyDum, eu, eueu, u2;
@@ -105,8 +100,6 @@ void *do_it(void *arg0)
   beta = arg->beta;
   xblcksize = arg->xblcksize;
   yblcksize = arg->yblcksize;
-  Dx = arg->Dx;
-  Dy = arg->Dy;
 
   for(int x=xStart;x<min(Dx, xStart+xblcksize+1);x++)
     {

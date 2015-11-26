@@ -20,6 +20,10 @@
 
 using namespace std;
 
+int c[9][2] = {{0,0}, {1,0}, {0,1}, {-1,0}, {0,-1}, {1,1}, {-1,1}, {-1,-1}, {1,-1}};
+double w[9]={4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0};
+int Dx, Dy;
+
 int main()
 {
   /*Parameters for LB simulation*/
@@ -27,7 +31,6 @@ int main()
   double tau, beta;
   double *fin, *fout, *temp, *rho, *ux, *uy;
   double Ma;   //Mach number
-  const double w[9]={4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0};
   
   /*Reads input file*/
       ifstream input_file("input.datin");
@@ -38,7 +41,7 @@ int main()
       input_file.close();
       
   /* --- Compute or define other parameters --- */
-      int Dy = 4*Ly + 1, Dx = 2*(Dy-1) + 1;
+      Dy = 4*Ly + 1, Dx = 2*(Dy-1) + 1;
       int xmin = (Dx-1)/2; int xmax = xmin + Lx;
       int ymin = (Dy-1)/2 - Ly/2; int ymax = ymin + Ly;
       double cs = 1./sqrt(3); double rho0 = 1.0;
@@ -68,7 +71,7 @@ int main()
       int tt=0;
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
-	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau, Dx, Dy);
+	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau);//, Dx, Dy);
 	      computeDomainNoSlipWalls_BB(fout, fin, Dx, Dy);
 	      computeSquareBounceBack_TEST(fout, fin, xmin, xmax, ymin, ymax, Dx, Dy);
 	      /*Reset square nodes to equilibrium*/

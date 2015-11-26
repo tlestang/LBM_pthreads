@@ -8,6 +8,8 @@
 
 #define min(a,b) ({ typeof (a) _a = (a); typeof (b) _b = (b); _a < _b ? _a : _b; })
 
-extern const double w[9];
-extern const int c[9][2];
+extern int Dx;
+extern int Dy;
+extern double w[9];
+extern int c[9][2];
 
