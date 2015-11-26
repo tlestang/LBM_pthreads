@@ -71,9 +71,9 @@ int main()
       int tt=0;
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
-	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau);//, Dx, Dy);
-	      computeDomainNoSlipWalls_BB(fout, fin, Dx, Dy);
-	      computeSquareBounceBack_TEST(fout, fin, xmin, xmax, ymin, ymax, Dx, Dy);
+	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau);
+	      computeDomainNoSlipWalls_BB(fout, fin);
+	      computeSquareBounceBack_TEST(fout, fin);
 	      /*Reset square nodes to equilibrium*/
 	      for(int x=xmin+1;x<xmax;x++)
 		{

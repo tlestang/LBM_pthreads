@@ -105,9 +105,9 @@ int main()
 		  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
 		  tt++;
 		}
-	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau, Dx, Dy);
-	      computeDomainNoSlipWalls_BB(fout, fin, Dx, Dy);
-	      computeSquareBounceBack_TEST(fout, fin, xmin, xmax, ymin, ymax, Dx, Dy);
+	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau);
+	      computeDomainNoSlipWalls_BB(fout, fin);
+	      computeSquareBounceBack_TEST(fout, fin);
 	      /*Reset square nodes to equilibrium*/
 	      for(int x=xmin+1;x<xmax;x++)
 		{

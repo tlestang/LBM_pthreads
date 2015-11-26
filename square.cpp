@@ -3,7 +3,7 @@
 #include "global.h"
 #endif
 
-void computeSquareBounceBack_TEST(double *fout, double *fin, int xmin, int xmax, int ymin, int ymax, int Dx, int Dy)
+void computeSquareBounceBack_TEST(double *fout, double *fin)
 {
   for(int x=xmin+1;x<xmax;x++)
     {

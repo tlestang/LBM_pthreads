@@ -3,7 +3,7 @@
 #include "global.h"
 #endif
 
-void computeDomainNoSlipWalls_BB(double *fout, double *fin, int Dx, int Dy)
+void computeDomainNoSlipWalls_BB(double *fout, double *fin)
 {
   /*Apply halfway BB to north and south wall, including corners*/
   int y0;
