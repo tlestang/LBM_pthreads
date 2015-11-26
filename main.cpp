@@ -19,6 +19,7 @@
 #include "initialize_lattice_arrays.h"
 #include "streamCollCompute.h"
 #include "boundaryConditions.h"
+#include "force.h"
 #include "write_vtk.h"
 
 using namespace std;
@@ -58,6 +59,7 @@ int main()
       double u0 = cs*cs*Ma; double uxSum, uxMean;
       double nu = 1./3.*(tau-0.5);
       double omega = 1.0/tau;
+      double F;
       beta = 8*nu*u0/((Dy-1)/2)/((Dy-1)/2);
   
   /* --- | Create folder for storing data | ---  */
@@ -79,8 +81,10 @@ int main()
       param.close();
 
       string openReFile = folderName + "/re_t.datout";
-      ofstream ReFile;
+      string openForceFile = folderName + "/data_force.datout";
+      ofstream ReFile, forceFile;
       ReFile.open(openReFile.c_str());
+      forceFile.open(openForceFile.c_str());
 
   /* ---- | Allocate populations and fields | --- */
 
@@ -124,6 +128,13 @@ int main()
 	      fin = fout;
 	      fout = temp;
 
+	      /* --- Compute and Write force on disk --- */
+	      if(lbTimeStepCount%facquForce==0)
+		{
+		  F = computeForceOnSquare(fin, omega);
+		  forceFile << F << endl;
+		}
+	      
 	      /*Compute Reynolds number*/
 	      if(lbTimeStepCount%facquRe==0)
 		{      
