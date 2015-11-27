@@ -47,7 +47,7 @@ int main()
       input_file >> folderName;
       input_file >> inputPopsFileName;
       input_file >> facquVtk;
-      input_file >> facquRe;
+      input_file >> facquU;
       input_file >> facquForce;
       input_file.close();
       
@@ -171,8 +171,11 @@ int main()
 	      // 	  uxSum=0.0; 
 	      // 	}
 	      /*Write velocity at a given point*/
+	      if(lbTimeStepCount%facqU==0)
+		{
 	      uxFile.write((char*)&ux[idx(Dx/4,Dy/4)], sizeof(double));
 	      uyFile.write((char*)&uy[idx(Dx/4,Dy/4)], sizeof(double));
+		}
 	    }
 	  uyFile.close();
 	  uxFile.close();
