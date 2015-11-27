@@ -32,7 +32,7 @@ int main()
 {
   /*Parameters for LB simulation*/
   int nbOfTimeSteps, Lx, Ly;
-  int facquVtk, facquRe, facquForce;
+  int facquVtk, facquU, facquForce;
   double tau, beta;
   double *fin, *fout, *temp, *rho, *ux, *uy;
   double Ma;   //Mach number
