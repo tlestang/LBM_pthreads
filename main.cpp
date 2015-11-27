@@ -82,9 +82,13 @@ int main()
 
       string openReFile = folderName + "/re_t.datout";
       string openForceFile = folderName + "/data_force.datout";
-      ofstream ReFile, forceFile;
-      ReFile.open(openReFile.c_str());
-      forceFile.open(openForceFile.c_str());
+      string openuxFile = folderName + "/ux_t.datout";
+      string openuyFile = folderName + "/uy_t.datout";
+      ofstream ReFile, forceFile, uxFile, uyFile;
+      ReFile.open(openReFile.c_str(), ios::binary);
+      forceFile.open(openForceFile.c_str(), ios::binary);
+      uxFile.open(openuxFile.c_str(), ios::binary);
+      uyFile.open(openuxFile.c_str(), ios::binary);
 
   /* ---- | Allocate populations and fields | --- */
 
@@ -94,9 +98,29 @@ int main()
       ux = (double *) memalign(getpagesize(), Dx*Dy*sizeof(double));
       uy = (double *) memalign(getpagesize(), Dx*Dy*sizeof(double));
 
+      if(inputPopsFileName != "0")
+	{
+	  ifstream popFile(inputPopsFileName.c_str());
+	  cout << "Initialized populations taken from " << inputPopsFileName << endl;
+	  for(int x=0;x<Dx;x++)
+	    {
+	      for(int y=0;y<Dy;y++)
+		{
+		  for(int k=0;k<9;k++)
+		    {
+		      popFile >> fin[IDX(x,y,k)];
+		    }
+		}
+	    }
+	  popFile.close();
+	}
+      else
+	{
    /* --- Initialize pops to equilibrium value --- */
       initializePopulations(fin, Dx, Dy);
       initializeFields(rho, ux, uy, Dx, Dy);
+	}
+      
       int dummy2 = 0;
   /* --- START LBM ---*/
       int tt=0;
@@ -132,21 +156,43 @@ int main()
 	      if(lbTimeStepCount%facquForce==0)
 		{
 		  F = computeForceOnSquare(fin, omega);
-		  forceFile << F << endl;
+		  forceFile.write((char*)&F, sizeof(double));
 		}
 	      
-	      /*Compute Reynolds number*/
-	      if(lbTimeStepCount%facquRe==0)
-		{      
-		  for(int y=0;y<Dy;y++)
+	      // /*Compute Reynolds number*/
+	      // if(lbTimeStepCount%facquRe==0)
+	      // 	{      
+	      // 	  for(int y=0;y<Dy;y++)
+	      // 	    {
+	      // 	      uxSum += ux[idx(Dx/4, y)];
+	      // 	    }
+	      // 	  uxMean = uxSum/Dy;
+	      // 	  ReFile << lbTimeStepCount << " " << (uxMean*Ly)/nu << endl;
+	      // 	  uxSum=0.0; 
+	      // 	}
+	      /*Write velocity at a given point*/
+	      uxFile.write((char*)&ux[idx(Dx/4,Dy/4)], sizeof(double));
+	      uyFile.write((char*)&uy[idx(Dx/4,Dy/4)], sizeof(double));
+	    }
+	  uyFile.close();
+	  uxFile.close();
+	  ReFile.close();
+	  forceFile.close();
+	  /*End of run - Save populations on disk*/
+	  /*and complete parameters file*/
+	  string popsFileName = folderName + "/pops.datout";
+	  ofstream pops_output_file(popsFileName.c_str());
+	  for(int x=0;x<Dx;x++)
+	    {
+	      for(int y=0;y<Dy;y++)
+		{
+		  for(int k=0;k<9;k++)
 		    {
-		      uxSum += ux[idx(Dx/4, y)];
+		      pops_output_file << fin[IDX(x,y,k)] << endl;
 		    }
-		  uxMean = uxSum/Dy;
-		  ReFile << lbTimeStepCount << " " << (uxMean*Ly)/nu << endl;
-		  uxSum=0.0; 
 		}
 	    }
+	  pops_output_file.close();
 	  
 }
 
