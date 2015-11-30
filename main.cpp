@@ -9,6 +9,7 @@
 #include <sstream>
 #include <malloc.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #ifndef __global__
 #define __global__
@@ -32,7 +33,7 @@ int main()
 {
   /*Parameters for LB simulation*/
   int nbOfTimeSteps, Lx, Ly;
-  int facquVtk, facquU, facquForce;
+  int facquVtk, facqU, facquForce;
   double tau, beta;
   double *fin, *fout, *temp, *rho, *ux, *uy;
   double Ma;   //Mach number
@@ -47,7 +48,7 @@ int main()
       input_file >> folderName;
       input_file >> inputPopsFileName;
       input_file >> facquVtk;
-      input_file >> facquU;
+      input_file >> facqU;
       input_file >> facquForce;
       input_file.close();
       
@@ -88,7 +89,7 @@ int main()
       ReFile.open(openReFile.c_str(), ios::binary);
       forceFile.open(openForceFile.c_str(), ios::binary);
       uxFile.open(openuxFile.c_str(), ios::binary);
-      uyFile.open(openuxFile.c_str(), ios::binary);
+      uyFile.open(openuyFile.c_str(), ios::binary);
 
   /* ---- | Allocate populations and fields | --- */
 
@@ -122,6 +123,9 @@ int main()
 	}
       
       int dummy2 = 0;
+      struct timeval start, end;
+
+      gettimeofday(&start,NULL);
   /* --- START LBM ---*/
       int tt=0;
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
@@ -177,6 +181,9 @@ int main()
 	      uyFile.write((char*)&uy[idx(Dx/4,Dy/4)], sizeof(double));
 		}
 	    }
+	   gettimeofday(&end,NULL);
+	   double t = (end.tv_sec - start.tv_sec)*1e6 + (end.tv_usec - start.tv_usec);
+	   cout << t/(1e6)/60 << "min" << endl;
 	  uyFile.close();
 	  uxFile.close();
 	  ReFile.close();
