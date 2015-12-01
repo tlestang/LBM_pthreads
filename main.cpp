@@ -32,7 +32,7 @@ int Dx, Dy, xmin, xmax, ymin, ymax;
 int main()
 {
   /*Parameters for LB simulation*/
-  int nbOfTimeSteps, Lx, Ly;
+  int nbOfTimeSteps, nbOfChunks,Lx, Ly;
   int facquVtk, facqU, facquForce;
   double tau, beta;
   double *fin, *fout, *temp, *rho, *ux, *uy;
@@ -41,6 +41,7 @@ int main()
   
   /*Reads input file*/
       ifstream input_file("input.datin");
+      input_file >> nbOfChunks;
       input_file >> nbOfTimeSteps;
       input_file >> Lx; Ly = Lx;
       input_file >> tau;
@@ -73,7 +74,7 @@ int main()
       string openParamFile = folderName + "/parameters.datout";
       ofstream param;
       param.open(openParamFile.c_str());
-      param << "Number of timesteps : " << nbOfTimeSteps << endl;
+      param << "Number of timesteps : " << nbOfTimeSteps*nbOfChunks << endl;
       param << "L : "  << Lx << endl;
       param << "Dx : " << Dx << endl;
       param << "Dy : " << Dy << endl;
@@ -81,15 +82,16 @@ int main()
       param << "beta : " << beta << endl;
       param.close();
 
-      string openReFile = folderName + "/re_t.datout";
+      //string openReFile = folderName + "/re_t.datout";
       string openForceFile = folderName + "/data_force.datout";
-      string openuxFile = folderName + "/ux_t.datout";
-      string openuyFile = folderName + "/uy_t.datout";
-      ofstream ReFile, forceFile, uxFile, uyFile;
-      ReFile.open(openReFile.c_str(), ios::binary);
+      //string openuxFile = folderName + "/ux_t.datout";
+      //string openuyFile = folderName + "/uy_t.datout";
+      //ofstream ReFile, uxFile, uyFile;
+      ofstream forceFile;
+      //ReFile.open(openReFile.c_str(), ios::binary);
       forceFile.open(openForceFile.c_str(), ios::binary);
-      uxFile.open(openuxFile.c_str(), ios::binary);
-      uyFile.open(openuyFile.c_str(), ios::binary);
+      //uxFile.open(openuxFile.c_str(), ios::binary);
+      //uyFile.open(openuyFile.c_str(), ios::binary);
 
   /* ---- | Allocate populations and fields | --- */
 
@@ -125,9 +127,11 @@ int main()
       int dummy2 = 0;
       struct timeval start, end;
 
-      gettimeofday(&start,NULL);
+      //gettimeofday(&start,NULL);
   /* --- START LBM ---*/
       int tt=0;
+      for (int chunkID=0;chunkID<nbOfChunks;chunkID++)
+	{
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
 	      if(lbTimeStepCount%(nbOfTimeSteps/100)==0)
@@ -175,18 +179,19 @@ int main()
 	      // 	  uxSum=0.0; 
 	      // 	}
 	      /*Write velocity at a given point*/
-	      if(lbTimeStepCount%facqU==0)
+	      /*if(lbTimeStepCount%facqU==0)
 		{
 	      uxFile.write((char*)&ux[idx(Dx/4,Dy/4)], sizeof(double));
 	      uyFile.write((char*)&uy[idx(Dx/4,Dy/4)], sizeof(double));
-		}
+	      }*/
 	    }
-	   gettimeofday(&end,NULL);
-	   double t = (end.tv_sec - start.tv_sec)*1e6 + (end.tv_usec - start.tv_usec);
-	   cout << t/(1e6)/60 << "min" << endl;
-	  uyFile.close();
-	  uxFile.close();
-	  ReFile.close();
+	}
+      //gettimeofday(&end,NULL);
+	   //double t = (end.tv_sec - start.tv_sec)*1e6 + (end.tv_usec - start.tv_usec);
+	   //cout << t/(1e6)/60 << "min" << endl;
+	   //uyFile.close();
+	   //uxFile.close();
+	   //ReFile.close();
 	  forceFile.close();
 	  /*End of run - Save populations on disk*/
 	  /*and complete parameters file*/
