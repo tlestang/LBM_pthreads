@@ -41,7 +41,7 @@ int main()
   
   /*Reads input file*/
       ifstream input_file("input.datin");
-      input_file >> nbOfChunks;
+      //input_file >> nbOfChunks;
       input_file >> nbOfTimeSteps;
       input_file >> Lx; Ly = Lx;
       input_file >> tau;
@@ -121,7 +121,7 @@ int main()
 	{
    /* --- Initialize pops to equilibrium value --- */
       initializePopulations(fin, Dx, Dy);
-      initializeFields(rho, ux, uy, Dx, Dy);
+      initializeFields(fin, rho, ux, uy, Dx, Dy);
 	}
       
       int dummy2 = 0;
@@ -130,8 +130,8 @@ int main()
       //gettimeofday(&start,NULL);
   /* --- START LBM ---*/
       int tt=0;
-      for (int chunkID=0;chunkID<nbOfChunks;chunkID++)
-	{
+      // for (int chunkID=0;chunkID<nbOfChunks;chunkID++)
+      // 	{
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
 	      if(lbTimeStepCount%(nbOfTimeSteps/100)==0)
@@ -185,7 +185,7 @@ int main()
 	      uyFile.write((char*)&uy[idx(Dx/4,Dy/4)], sizeof(double));
 	      }*/
 	    }
-	}
+	  //}
       //gettimeofday(&end,NULL);
 	   //double t = (end.tv_sec - start.tv_sec)*1e6 + (end.tv_usec - start.tv_usec);
 	   //cout << t/(1e6)/60 << "min" << endl;
