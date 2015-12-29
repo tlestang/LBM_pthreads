@@ -62,7 +62,11 @@ int main()
       double nu = 1./3.*(tau-0.5);
       double omega = 1.0/tau;
       double F;
-      beta = 8*nu*u0/((Dy-1)/2)/((Dy-1)/2);
+      double a;
+      /*For progressive forcing */
+      double beta0 = 8*nu*u0/((Dy-1)/2)/((Dy-1)/2);
+      double tau0 = 9452; /*Caracteristic time for the forcing*/
+      
   
   /* --- | Create folder for storing data | ---  */
       string instru = "mkdir " + folderName;
@@ -120,13 +124,15 @@ int main()
       else
 	{
    /* --- Initialize pops to equilibrium value --- */
-      initializePopulationsRandom(fin, Dx, Dy);
+      initializePopulations(fin, Dx, Dy);
       initializeFields(fin, rho, ux, uy, Dx, Dy);
 	}
       
       int dummy2 = 0;
       struct timeval start, end;
 
+      ofstream beta_track;
+      beta_track.open("beta_track.datout");
       //gettimeofday(&start,NULL);
   /* --- START LBM ---*/
       int tt=0;
@@ -141,6 +147,10 @@ int main()
 		  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
 		  tt++;
 		}
+	      a = lbTimeStepCount/tau0;
+	      beta = beta0*(1.0-exp(-a));
+	      beta_track << lbTimeStepCount << " " << beta << endl;
+	      /*----------------- LBM -----------------------------------------------*/
 	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau);
 	      computeDomainNoSlipWalls_BB(fout, fin);
 	      computeSquareBounceBack_TEST(fout, fin);
@@ -184,8 +194,8 @@ int main()
 	      uxFile.write((char*)&ux[idx(Dx/4,Dy/4)], sizeof(double));
 	      uyFile.write((char*)&uy[idx(Dx/4,Dy/4)], sizeof(double));
 	      }*/
+	      //}
 	    }
-	  //}
       //gettimeofday(&end,NULL);
 	   //double t = (end.tv_sec - start.tv_sec)*1e6 + (end.tv_usec - start.tv_usec);
 	   //cout << t/(1e6)/60 << "min" << endl;
@@ -193,6 +203,7 @@ int main()
 	   //uxFile.close();
 	   //ReFile.close();
 	  forceFile.close();
+	  beta_track.close();
 	  /*End of run - Save populations on disk*/
 	  /*and complete parameters file*/
 	  string popsFileName = folderName + "/pops.datout";
@@ -208,7 +219,6 @@ int main()
 		}
 	    }
 	  pops_output_file.close();
-	  
 }
 
 
