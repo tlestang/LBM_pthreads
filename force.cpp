@@ -5,8 +5,6 @@
 #include "global.h"
 #endif
 
-using namespace std;
-
 double computeForceOnSquare(double *f, double omega)
 {
   double ot = 1./3.;
