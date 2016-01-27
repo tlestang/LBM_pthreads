@@ -82,16 +82,12 @@ int main()
       param << "beta : " << beta << endl;
       param.close();
 
-      //string openReFile = folderName + "/re_t.datout";
+
       string openForceFile = folderName + "/data_force.datout";
-      //string openuxFile = folderName + "/ux_t.datout";
-      //string openuyFile = folderName + "/uy_t.datout";
-      //ofstream ReFile, uxFile, uyFile;
-      ofstream forceFile;
-      //ReFile.open(openReFile.c_str(), ios::binary);
+      string openuxFile = folderName + "/ux_t.datout";
+      ofstream forceFile, uxFile;
       forceFile.open(openForceFile.c_str(), ios::binary);
-      //uxFile.open(openuxFile.c_str(), ios::binary);
-      //uyFile.open(openuyFile.c_str(), ios::binary);
+      uxFile.open(openuxFile.c_str(), ios::binary);
 
   /* ---- | Allocate populations and fields | --- */
 
@@ -120,7 +116,7 @@ int main()
       else
 	{
    /* --- Initialize pops to equilibrium value --- */
-      initializePopulationsRandom(fin, Dx, Dy);
+      initializePopulations(fin, Dx, Dy);
       initializeFields(fin, rho, ux, uy, Dx, Dy);
 	}
       
@@ -135,12 +131,10 @@ int main()
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
 	      if(lbTimeStepCount%(nbOfTimeSteps/100)==0)
-		dummy2++; cout<<dummy2<<"%\r"; fflush(stdout);
-	      if(lbTimeStepCount%facquVtk==0)
 		{
-		  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
-		  tt++;
+		dummy2++; cout<< "Running : " << dummy2<<"%" << endl;
 		}
+
 	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau);
 	      computeDomainNoSlipWalls_BB(fout, fin);
 	      computeSquareBounceBack_TEST(fout, fin);
@@ -166,32 +160,23 @@ int main()
 		  F = computeForceOnSquare(fin, omega);
 		  forceFile.write((char*)&F, sizeof(double));
 		}
+	      if(lbTimeStepCount%facquVtk==0)
+		{
+		  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
+		  tt++;
+		}
 	      
-	      // /*Compute Reynolds number*/
-	      // if(lbTimeStepCount%facquRe==0)
-	      // 	{      
-	      // 	  for(int y=0;y<Dy;y++)
-	      // 	    {
-	      // 	      uxSum += ux[idx(Dx/4, y)];
-	      // 	    }
-	      // 	  uxMean = uxSum/Dy;
-	      // 	  ReFile << lbTimeStepCount << " " << (uxMean*Ly)/nu << endl;
-	      // 	  uxSum=0.0; 
-	      // 	}
 	      /*Write velocity at a given point*/
-	      /*if(lbTimeStepCount%facqU==0)
+	      if(lbTimeStepCount%facqU==0)
 		{
 	      uxFile.write((char*)&ux[idx(Dx/4,Dy/4)], sizeof(double));
-	      uyFile.write((char*)&uy[idx(Dx/4,Dy/4)], sizeof(double));
-	      }*/
+		}
 	    }
 	  //}
       //gettimeofday(&end,NULL);
 	   //double t = (end.tv_sec - start.tv_sec)*1e6 + (end.tv_usec - start.tv_usec);
 	   //cout << t/(1e6)/60 << "min" << endl;
-	   //uyFile.close();
-	   //uxFile.close();
-	   //ReFile.close();
+	  uxFile.close();
 	  forceFile.close();
 	  /*End of run - Save populations on disk*/
 	  /*and complete parameters file*/
