@@ -33,7 +33,7 @@ int main()
 {
   /*Parameters for LB simulation*/
   int nbOfTimeSteps, nbOfChunks,Lx, Ly;
-  int facquVtk, facqU, facquForce;
+  int facquVtk, facqU, facquForce, facquPops;
   double tau, beta;
   double *fin, *fout, *temp, *rho, *ux, *uy;
   double Ma;   //Mach number
@@ -51,6 +51,7 @@ int main()
       input_file >> facquVtk;
       input_file >> facqU;
       input_file >> facquForce;
+      input_file >> facquPops;
       input_file.close();
       
   /* --- Compute or define other parameters --- */
@@ -65,9 +66,13 @@ int main()
       beta = 8*nu*u0/((Dy-1)/2)/((Dy-1)/2);
   
   /* --- | Create folder for storing data | ---  */
+      string popsFileName;
       string instru = "mkdir " + folderName;
+      ofstream pops_output_file;
       system(instru.c_str());
       instru = "mkdir " + folderName + "/vtk_fluid/";
+      system(instru.c_str());
+      instru = "mkdir " + folderName + "/populations/";
       system(instru.c_str());
       
   /* --- | Create parameters file | --- */
@@ -99,18 +104,9 @@ int main()
 
       if(inputPopsFileName != "0")
 	{
-	  ifstream popFile(inputPopsFileName.c_str());
+	  ifstream popFile(inputPopsFileName.c_str(), ios::binary);
 	  cout << "Initialized populations taken from " << inputPopsFileName << endl;
-	  for(int x=0;x<Dx;x++)
-	    {
-	      for(int y=0;y<Dy;y++)
-		{
-		  for(int k=0;k<9;k++)
-		    {
-		      popFile >> fin[IDX(x,y,k)];
-		    }
-		}
-	    }
+	  popFile.read((char*)&fin[0], Dx*Dy*9*sizeof(double));
 	  popFile.close();
 	}
       else
@@ -171,27 +167,24 @@ int main()
 		{
 	      uxFile.write((char*)&ux[idx(Dx/4,Dy/4)], sizeof(double));
 		}
+	      if(lbTimeStepCount%facquPops==0)
+		{
+		  stringstream fileName;
+		  fileName << "pops_" << lbTimeStepCount << ".datout";
+		  popsFileName = folderName+"/populations/"+fileName.str();
+		  pops_output_file.open(popsFileName.c_str(), ios::binary);
+		  pops_output_file.write((char*)&fin[0], Dx*Dy*9*sizeof(double));
+		  pops_output_file.close();
+		}
 	    }
 	  //}
-      //gettimeofday(&end,NULL);
-	   //double t = (end.tv_sec - start.tv_sec)*1e6 + (end.tv_usec - start.tv_usec);
-	   //cout << t/(1e6)/60 << "min" << endl;
 	  uxFile.close();
 	  forceFile.close();
 	  /*End of run - Save populations on disk*/
 	  /*and complete parameters file*/
-	  string popsFileName = folderName + "/pops.datout";
-	  ofstream pops_output_file(popsFileName.c_str());
-	  for(int x=0;x<Dx;x++)
-	    {
-	      for(int y=0;y<Dy;y++)
-		{
-		  for(int k=0;k<9;k++)
-		    {
-		      pops_output_file << fin[IDX(x,y,k)] << endl;
-		    }
-		}
-	    }
+	  popsFileName = folderName + "/pops_final.datout";
+	  pops_output_file.open(popsFileName.c_str(), ios::binary);
+	  pops_output_file.write((char*)&fin[0], Dx*Dy*9*sizeof(double));
 	  pops_output_file.close();
 	  
 }
