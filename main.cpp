@@ -32,9 +32,10 @@ int Dx, Dy, xmin, xmax, ymin, ymax;
 int main()
 {
   /*Parameters for LB simulation*/
-  int nbOfTimeSteps, nbOfChunks,Lx, Ly;
+  int Lx, Ly;
+  double T;
   int facquVtk, facqU, facquForce, facquPops;
-  double tau, beta;
+  double tau, beta0, U0;
   double *fin, *fout, *temp, *rho, *ux, *uy;
   double Ma;   //Mach number
   string folderName, inputPopsFileName;
@@ -42,10 +43,10 @@ int main()
   /*Reads input file*/
       ifstream input_file("input.datin");
       //input_file >> nbOfChunks;
-      input_file >> nbOfTimeSteps;
+      input_file >> T;
       input_file >> Lx; Ly = Lx;
       input_file >> tau;
-      input_file >> Ma;
+      input_file >> U0;
       input_file >> folderName;
       input_file >> inputPopsFileName;
       input_file >> facquVtk;
@@ -62,8 +63,16 @@ int main()
       double u0 = cs*cs*Ma; double uxSum, uxMean;
       double nu = 1./3.*(tau-0.5);
       double omega = 1.0/tau;
-      double F;
-      beta = 8*nu*u0/((Dy-1)/2)/((Dy-1)/2);
+
+      double F, T0, F0;
+
+      //COMPUTE CHARESTICTC VELOCITY AND TIME
+      beta0 = (1./(Dx-1))*((double)Lx/(Dy-1))*U0*U0;
+      T0 = Lx/U0;
+      F0 = (U0*U0)*(Lx-1)*0.5;
+   
+      double delta_t = 1.0/T0; //LBM time steps in units of physical time T0
+      int nbOfTimeSteps = floor(T*T0);
   
   /* --- | Create folder for storing data | ---  */
       string popsFileName;
@@ -79,20 +88,24 @@ int main()
       string openParamFile = folderName + "/parameters.datout";
       ofstream param;
       param.open(openParamFile.c_str());
-      param << "Number of timesteps : " << nbOfTimeSteps*nbOfChunks << endl;
+      param << "Total simulation time : " << T << endl;
+      param << "Timesteps : " << nbOfTimeSteps << endl;
       param << "L : "  << Lx << endl;
       param << "Dx : " << Dx << endl;
       param << "Dy : " << Dy << endl;
       param << "tau : " << tau << endl;
-      param << "beta : " << beta << endl;
+      param << "U0 : " << U0 << endl;
+      param << "beta0 : " << beta0 << endl;
       param.close();
 
 
       string openForceFile = folderName + "/data_force.datout";
       string openuxFile = folderName + "/ux_t.datout";
-      ofstream forceFile, uxFile;
+      string openrhoFile = folderName + "/rho_t.datout";
+      ofstream forceFile, uxFile, rhoFile;
       forceFile.open(openForceFile.c_str(), ios::binary);
       uxFile.open(openuxFile.c_str(), ios::binary);
+      rhoFile.open(openrhoFile.c_str(), ios::binary);
 
   /* ---- | Allocate populations and fields | --- */
 
@@ -117,9 +130,7 @@ int main()
 	}
       
       int dummy2 = 0;
-      struct timeval start, end;
 
-      //gettimeofday(&start,NULL);
   /* --- START LBM ---*/
       int tt=0;
       // for (int chunkID=0;chunkID<nbOfChunks;chunkID++)
@@ -131,7 +142,7 @@ int main()
 		dummy2++; cout<< "Running : " << dummy2<<"%" << endl;
 		}
 
-	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta, tau);
+	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta0, tau);
 	      computeDomainNoSlipWalls_BB(fout, fin);
 	      computeSquareBounceBack_TEST(fout, fin);
 	      /*Reset square nodes to equilibrium*/
@@ -167,15 +178,22 @@ int main()
 		{
 	      uxFile.write((char*)&ux[idx(Dx/4,Dy/4)], sizeof(double));
 		}
-	      if(lbTimeStepCount%facquPops==0)
+
+	      /*Write velocity at a given point*/
+	      if(lbTimeStepCount%facqU==0)
 		{
-		  stringstream fileName;
-		  fileName << "pops_" << lbTimeStepCount << ".datout";
-		  popsFileName = folderName+"/populations/"+fileName.str();
-		  pops_output_file.open(popsFileName.c_str(), ios::binary);
-		  pops_output_file.write((char*)&fin[0], Dx*Dy*9*sizeof(double));
-		  pops_output_file.close();
+		  rhoFile.write((char*)&ux[idx(xmin-2,Dy/2)], sizeof(double));
 		}
+	      
+	      // if(lbTimeStepCount%facquPops==0)
+	      // 	{
+	      // 	  stringstream fileName;
+	      // 	  fileName << "pops_" << lbTimeStepCount << ".datout";
+	      // 	  popsFileName = folderName+"/populations/"+fileName.str();
+	      // 	  pops_output_file.open(popsFileName.c_str(), ios::binary);
+	      // 	  pops_output_file.write((char*)&fin[0], Dx*Dy*9*sizeof(double));
+	      // 	  pops_output_file.close();
+	      // 	}
 	    }
 	  //}
 	  uxFile.close();
