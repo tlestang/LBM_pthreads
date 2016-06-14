@@ -29,7 +29,7 @@ int c[9][2] = {{0,0}, {1,0}, {0,1}, {-1,0}, {0,-1}, {1,1}, {-1,1}, {-1,-1}, {1,-
 double w[9]={4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0};
 int Dx, Dy, xmin, xmax, ymin, ymax;
 
-int main()
+int main(int argc, char* argv[])
 {
   /*Parameters for LB simulation*/
   int Lx, Ly;
@@ -41,8 +41,7 @@ int main()
   string folderName, inputPopsFileName;
   
   /*Reads input file*/
-      ifstream input_file("input.datin");
-      //input_file >> nbOfChunks;
+  ifstream input_file(argv[1]);
       input_file >> T;
       input_file >> Lx; Ly = Lx;
       input_file >> tau;
@@ -64,12 +63,13 @@ int main()
       double nu = 1./3.*(tau-0.5);
       double omega = 1.0/tau;
 
-      double F, T0, F0;
+      double F, T0, F0, oneOvF0;
 
       //COMPUTE CHARESTICTC VELOCITY AND TIME
       beta0 = (1./(Dx-1))*((double)Lx/(Dy-1))*U0*U0;
       T0 = Lx/U0;
-      F0 = (U0*U0)*(Lx-1)*0.5;
+      F0 = (U0*U0)*Lx*0.5;
+      oneOvF0 = 1./F0;
    
       double delta_t = 1.0/T0; //LBM time steps in units of physical time T0
       int nbOfTimeSteps = floor(T*T0);
@@ -79,29 +79,31 @@ int main()
       string instru = "mkdir " + folderName;
       ofstream pops_output_file;
       system(instru.c_str());
-      instru = "mkdir " + folderName + "/vtk_fluid/";
+      instru = "mkdir " + folderName + "vtk_fluid/";
       system(instru.c_str());
-      instru = "mkdir " + folderName + "/populations/";
+      instru = "mkdir " + folderName + "populations/";
       system(instru.c_str());
       
   /* --- | Create parameters file | --- */
-      string openParamFile = folderName + "/parameters.datout";
+      string openParamFile = folderName + "parameters.datout";
       ofstream param;
       param.open(openParamFile.c_str());
       param << "Total simulation time : " << T << endl;
-      param << "Timesteps : " << nbOfTimeSteps << endl;
+      param << "    1 T0 <--> " << T0 << " LB timesteps" << endl;
+      param << "    Total sim. time is" << nbOfTimeSteps << " LB timesteps" << endl;
       param << "L : "  << Lx << endl;
       param << "Dx : " << Dx << endl;
       param << "Dy : " << Dy << endl;
       param << "tau : " << tau << endl;
       param << "U0 : " << U0 << endl;
       param << "beta0 : " << beta0 << endl;
+      param << "Initial condition : " << inputPopsFileName << endl;
       param.close();
 
 
-      string openForceFile = folderName + "/data_force.datout";
-      string openuxFile = folderName + "/ux_t.datout";
-      string openrhoFile = folderName + "/rho_t.datout";
+      string openForceFile = folderName + "data_force.datout";
+      string openuxFile = folderName + "ux_t.datout";
+      string openrhoFile = folderName + "rho_t.datout";
       ofstream forceFile, uxFile, rhoFile;
       forceFile.open(openForceFile.c_str(), ios::binary);
       uxFile.open(openuxFile.c_str(), ios::binary);
@@ -165,25 +167,26 @@ int main()
 	      if(lbTimeStepCount%facquForce==0)
 		{
 		  F = computeForceOnSquare(fin, omega);
+		  F = F*oneOvF0;
 		  forceFile.write((char*)&F, sizeof(double));
 		}
 	      if(lbTimeStepCount%facquVtk==0)
-		{
-		  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
-		  tt++;
-		}
+	      	{
+	      	  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
+	      	  tt++;
+	      	}
 	      
-	      /*Write velocity at a given point*/
-	      if(lbTimeStepCount%facqU==0)
-		{
-	      uxFile.write((char*)&ux[idx(Dx/4,Dy/4)], sizeof(double));
-		}
+	      // /*Write velocity at a given point*/
+	      // if(lbTimeStepCount%facqU==0)
+	      // 	{
+	      // uxFile.write((char*)&ux[idx(Dx/4,Dy/4)], sizeof(double));
+	      // 	}
 
-	      /*Write velocity at a given point*/
-	      if(lbTimeStepCount%facqU==0)
-		{
-		  rhoFile.write((char*)&ux[idx(xmin-2,Dy/2)], sizeof(double));
-		}
+	      // /*Write density at a given point*/
+	      // if(lbTimeStepCount%facqU==0)
+	      // 	{
+	      // 	  rhoFile.write((char*)&rho[idx(xmin-4,Dy/2)], sizeof(double));
+	      // 	}
 	      
 	      // if(lbTimeStepCount%facquPops==0)
 	      // 	{
@@ -200,7 +203,7 @@ int main()
 	  forceFile.close();
 	  /*End of run - Save populations on disk*/
 	  /*and complete parameters file*/
-	  popsFileName = folderName + "/pops_final.datout";
+	  popsFileName = folderName + "pops.datout";
 	  pops_output_file.open(popsFileName.c_str(), ios::binary);
 	  pops_output_file.write((char*)&fin[0], Dx*Dy*9*sizeof(double));
 	  pops_output_file.close();
