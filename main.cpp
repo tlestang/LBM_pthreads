@@ -17,13 +17,16 @@
 #endif
 
 
+using namespace std;
+
 #include "initialize_lattice_arrays.h"
 #include "streamCollCompute.h"
 #include "boundaryConditions.h"
 #include "force.h"
 #include "write_vtk.h"
+int generateInitialState(double*, string, int);
 
-using namespace std;
+
 
 int c[9][2] = {{0,0}, {1,0}, {0,1}, {-1,0}, {0,-1}, {1,1}, {-1,1}, {-1,-1}, {1,-1}};
 double w[9]={4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0};
@@ -56,6 +59,7 @@ int main(int argc, char* argv[])
       
   /* --- Compute or define other parameters --- */
       Dy = 4*Ly + 1, Dx = Dy; //2*(Dy-1) + 1;
+      int N = Dx*Dy*9;
       xmin = (Dx-1)/2; xmax = xmin + Lx;
       ymin = (Dy-1)/2 - Ly/2; ymax = ymin + Ly;
       double cs = 1./sqrt(3); double rho0 = 1.0;
@@ -73,6 +77,7 @@ int main(int argc, char* argv[])
    
       double delta_t = 1.0/T0; //LBM time steps in units of physical time T0
       int nbOfTimeSteps = floor(T*T0);
+      int error = 0;
   
   /* --- | Create folder for storing data | ---  */
       string popsFileName;
@@ -105,7 +110,13 @@ int main(int argc, char* argv[])
       string openuxFile = folderName + "ux_t.datout";
       string openrhoFile = folderName + "rho_t.datout";
       ofstream forceFile, uxFile, rhoFile;
-      forceFile.open(openForceFile.c_str(), ios::binary);
+
+      int sizeFBuffer;
+      if(nbOfTimeSteps%facquForce == 0)
+	{sizeFBuffer = nbOfTimeSteps / facquForce;}
+      else
+	{sizeFBuffer = floor(nbOfTimeSteps/facquForce);}
+      double *FBuffer = new double[sizeFBuffer];
       uxFile.open(openuxFile.c_str(), ios::binary);
       rhoFile.open(openrhoFile.c_str(), ios::binary);
 
@@ -119,10 +130,17 @@ int main(int argc, char* argv[])
 
       if(inputPopsFileName != "0")
 	{
+#ifndef _RANDOM
+	  cout << "Creating initial state from " << inputPopsFileName << endl;
 	  ifstream popFile(inputPopsFileName.c_str(), ios::binary);
 	  cout << "Initialized populations taken from " << inputPopsFileName << endl;
 	  popFile.read((char*)&fin[0], Dx*Dy*9*sizeof(double));
 	  popFile.close();
+#else
+	  cout<< "Creating RANDOM initial state from files located in " << inputPopsFileName << endl;
+	  error = generateInitialState(fin, inputPopsFileName, N);
+	  if(error){cout << "ERROR(s) in generation of initial condition " << endl;}
+#endif
 	}
       else
 	{
@@ -133,8 +151,9 @@ int main(int argc, char* argv[])
       
       int dummy2 = 0;
 
+      
   /* --- START LBM ---*/
-      int tt=0;
+      int tt=0; int k=0;
       // for (int chunkID=0;chunkID<nbOfChunks;chunkID++)
       // 	{
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
@@ -164,17 +183,19 @@ int main(int argc, char* argv[])
 	      fout = temp;
 
 	      /* --- Compute and Write force on disk --- */
-	      if(lbTimeStepCount%facquForce==0)
-		{
+	      //if(lbTimeStepCount%facquForce==0)
+	      //{
 		  F = computeForceOnSquare(fin, omega);
 		  F = F*oneOvF0;
-		  forceFile.write((char*)&F, sizeof(double));
-		}
-	      if(lbTimeStepCount%facquVtk==0)
-	      	{
-	      	  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
-	      	  tt++;
-	      	}
+		  FBuffer[k] = F;
+		  k++;
+		  //forceFile.write((char*)&F, sizeof(double));
+		  //}
+	      // if(lbTimeStepCount%facquVtk==0)
+	      // 	{
+	      // 	  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
+	      // 	  tt++;
+	      // 	}
 	      
 	      // /*Write velocity at a given point*/
 	      // if(lbTimeStepCount%facqU==0)
@@ -198,12 +219,16 @@ int main(int argc, char* argv[])
 	      // 	  pops_output_file.close();
 	      // 	}
 	    }
+
+	  
 	  //}
 	  uxFile.close();
+	  forceFile.open(openForceFile.c_str(), ios::binary);
+	  forceFile.write((char*)&FBuffer[0], sizeFBuffer*sizeof(double));
 	  forceFile.close();
 	  /*End of run - Save populations on disk*/
 	  /*and complete parameters file*/
-	  popsFileName = folderName + "pops.datout";
+	  popsFileName = folderName + "pops_final.datout";
 	  pops_output_file.open(popsFileName.c_str(), ios::binary);
 	  pops_output_file.write((char*)&fin[0], Dx*Dy*9*sizeof(double));
 	  pops_output_file.close();

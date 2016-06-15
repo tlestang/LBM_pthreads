@@ -1,8 +1,8 @@
-CXXFLAGS=-O3 
+CXXFLAGS=-O3 -D _RANDOM
 LDFLAGS=-lpthread
 
-current: main.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o force.o write_vtk.o
-	g++ -o run main.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o force.o write_vtk.o $(LDFLAGS)
+current: main.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o force.o write_vtk.o generateInitialState.o
+	g++ -o run main.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o force.o write_vtk.o generateInitialState.o $(LDFLAGS)
 prog: main_prog.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o force.o write_vtk.o
 	g++ -o run_prog main_prog.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o force.o write_vtk.o $(LDFLAGS)
 benchmark: main_benchmark.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o 
@@ -25,6 +25,8 @@ force.o: force.cpp
 	g++ -o force.o -c force.cpp $(CXXFLAGS)
 write_vtk.o: write_vtk.cpp
 	g++ -o write_vtk.o -c write_vtk.cpp $(CXXFLAGS)
+generateInitialState.o: generateInitialState.cpp
+	g++ -o generateInitialState.o -c generateInitialState.cpp $(CXXFLAGS)
 clean:
 	rm -rf *.o
 mrproper: clean
