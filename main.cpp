@@ -58,7 +58,8 @@ int main(int argc, char* argv[])
       input_file.close();
       
   /* --- Compute or define other parameters --- */
-      Dy = 4*Ly + 1, Dx = Dy; //2*(Dy-1) + 1;
+      Dy = 4*Ly + 1; Dx = 4*(Dy-1) + 1;
+
       int N = Dx*Dy*9;
       xmin = (Dx-1)/2; xmax = xmin + Lx;
       ymin = (Dy-1)/2 - Ly/2; ymax = ymin + Ly;
@@ -159,11 +160,12 @@ int main(int argc, char* argv[])
 	  for (int lbTimeStepCount=0; lbTimeStepCount<nbOfTimeSteps;lbTimeStepCount++)
 	    {
 	      if(lbTimeStepCount%(nbOfTimeSteps/100)==0)
-		{
-		dummy2++; cout<< "Running : " << dummy2<<"%" << endl;
-		}
+	      	{
+	      	dummy2++; cout<< "Running : " << dummy2<<"%" << endl;
+	      	}
 
 	      streamingAndCollision_POSIX(fin, fout, rho, ux, uy, beta0, tau);
+
 	      computeDomainNoSlipWalls_BB(fout, fin);
 	      computeSquareBounceBack_TEST(fout, fin);
 	      /*Reset square nodes to equilibrium*/
@@ -189,13 +191,13 @@ int main(int argc, char* argv[])
 		  F = F*oneOvF0;
 		  FBuffer[k] = F;
 		  k++;
-		  //forceFile.write((char*)&F, sizeof(double));
+		  // forceFile.write((char*)&F, sizeof(double));
 		  //}
-	      // if(lbTimeStepCount%facquVtk==0)
-	      // 	{
-	      // 	  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
-	      // 	  tt++;
-	      // 	}
+	      if(lbTimeStepCount%facquVtk==0)
+	      	{
+	      	  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
+	      	  tt++;
+	      	}
 	      
 	      // /*Write velocity at a given point*/
 	      // if(lbTimeStepCount%facqU==0)

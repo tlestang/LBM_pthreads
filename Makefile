@@ -1,4 +1,4 @@
-CXXFLAGS=-O3 -D _RANDOM
+CXXFLAGS=-O3 #-D _RANDOM
 LDFLAGS=-lpthread
 
 current: main.o initialize_lattice_arrays.o streamCollCompute.o domain_noSlipWalls.o square.o force.o write_vtk.o generateInitialState.o
