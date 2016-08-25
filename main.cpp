@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
       input_file.close();
       
   /* --- Compute or define other parameters --- */
-      Dy = 4*Ly + 1; Dx = 4*(Dy-1) + 1;
+      Dy = 4*Ly + 1; Dx = Dy;
 
       int N = Dx*Dy*9;
       xmin = (Dx-1)/2; xmax = xmin + Lx;
@@ -78,6 +78,7 @@ int main(int argc, char* argv[])
    
       double delta_t = 1.0/T0; //LBM time steps in units of physical time T0
       int nbOfTimeSteps = floor(T*T0);
+      cout << nbOfTimeSteps << endl;
       int error = 0;
   
   /* --- | Create folder for storing data | ---  */
@@ -114,12 +115,19 @@ int main(int argc, char* argv[])
 
       int sizeFBuffer;
       if(nbOfTimeSteps%facquForce == 0)
-	{sizeFBuffer = nbOfTimeSteps / facquForce;}
+	{cout << "ICI" << endl; sizeFBuffer = nbOfTimeSteps / facquForce;   cout << "size " << sizeFBuffer <<  endl;}
       else
-	{sizeFBuffer = floor(nbOfTimeSteps/facquForce);}
+	{sizeFBuffer = floor(nbOfTimeSteps/facquForce) + 1;}
       double *FBuffer = new double[sizeFBuffer];
       uxFile.open(openuxFile.c_str(), ios::binary);
       rhoFile.open(openrhoFile.c_str(), ios::binary);
+
+#ifdef _FORCEONWALLS
+      double Fwalls = 0.0;
+      string openForceWallsFile = folderName + "/data_force_walls.datout";
+      ofstream forceWallsFile;
+      forceWallsFile.open(openForceWallsFile.c_str(), ios::binary);
+#endif
 
   /* ---- | Allocate populations and fields | --- */
 
@@ -185,19 +193,27 @@ int main(int argc, char* argv[])
 	      fout = temp;
 
 	      /* --- Compute and Write force on disk --- */
-	      //if(lbTimeStepCount%facquForce==0)
-	      //{
+	      if(lbTimeStepCount%facquForce==0)
+	      {
 		  F = computeForceOnSquare(fin, omega);
 		  F = F*oneOvF0;
 		  FBuffer[k] = F;
 		  k++;
 		  // forceFile.write((char*)&F, sizeof(double));
-		  //}
-	      if(lbTimeStepCount%facquVtk==0)
-	      	{
-	      	  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
-	      	  tt++;
-	      	}
+	      }
+#ifdef _FORCEONWALLS
+	      if(lbTimeStepCount%facquForce==0)
+		{
+		  Fwalls = computeForceOnWalls(fin, omega);
+		  Fwalls = Fwalls*oneOvF0;
+		  forceWallsFile.write((char*)&Fwalls, sizeof(double));
+		}
+#endif
+	      // if(lbTimeStepCount%facquVtk==0)
+	      // 	{
+	      // 	  write_fluid_vtk(tt, Dx, Dy, rho, ux, uy, folderName.c_str());
+	      // 	  tt++;
+	      // 	}
 	      
 	      // /*Write velocity at a given point*/
 	      // if(lbTimeStepCount%facqU==0)
@@ -221,6 +237,7 @@ int main(int argc, char* argv[])
 	      // 	  pops_output_file.close();
 	      // 	}
 	    }
+	  cout << k -1 << endl;
 
 	  
 	  //}
@@ -228,6 +245,9 @@ int main(int argc, char* argv[])
 	  forceFile.open(openForceFile.c_str(), ios::binary);
 	  forceFile.write((char*)&FBuffer[0], sizeFBuffer*sizeof(double));
 	  forceFile.close();
+#ifdef _FORCEONWALLS
+	  forceWallsFile.close();
+#endif
 	  /*End of run - Save populations on disk*/
 	  /*and complete parameters file*/
 	  popsFileName = folderName + "pops_final.datout";
